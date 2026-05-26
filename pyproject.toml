@@ -1,0 +1,13 @@
+[project]
+name = "card-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.104.1",
+    "dotenv>=0.9.9",
+    "firecrawl-py>=4.28.0",
+    "instructor>=1.15.1",
+    "pydantic>=2.13.4",
+]

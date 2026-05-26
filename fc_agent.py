@@ -1,0 +1,35 @@
+import anthropic
+import instructor
+
+from settings import anthropic_api_key
+from models import SummaryModel
+
+claude = instructor.from_anthropic(anthropic.Anthropic(api_key=anthropic_api_key))
+
+MODEL = "claude-sonnet-4-5"
+MAX_TOKENS = 4096
+
+def call_anthropic(prompt: str, chat_history: list[dict]) -> SummaryModel:
+    
+    """Prompts claude with given user input and ouputs LLM response in the form of a 
+    SummaryModel structured pydantic object.
+    
+    ## Args
+    
+        1. prompt: User input gathered from user to be sent to LLM
+        2. chat_history: Current chat history for the LLM to reference
+    """
+    
+    chat_history.append({
+        "role": "user",
+        "content": prompt
+    })
+    
+    response = claude.messages.create(
+        model = MODEL,
+        max_tokens = MAX_TOKENS,
+        messages = chat_history,
+        response_model = SummaryModel
+    )
+    
+    return response
