@@ -20,6 +20,10 @@ def call_anthropic(prompt: str, chat_history: list[dict]) -> SummaryModel:
         2. chat_history: Current chat history for the LLM to reference
     """
     
+    if not chat_history:
+        
+        pass
+    
     chat_history.append({
         "role": "user",
         "content": prompt
@@ -33,3 +37,9 @@ def call_anthropic(prompt: str, chat_history: list[dict]) -> SummaryModel:
     )
     
     return response
+
+def call_anthropic_react():
+    
+    
+    
+    pass

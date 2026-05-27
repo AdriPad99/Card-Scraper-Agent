@@ -43,3 +43,20 @@ def crawl_webpage(usr_url: str, usr_lim: int, usr_scrape_options: CrawlDict) -> 
     crawl_results = app.crawl_url(url=usr_url, limit=usr_lim, scrape_options=usr_scrape_options)
     
     return crawl_results
+
+def search_webpage(web_search: str) -> list[dict]:
+    
+    """
+    Searches the argument as you would with a search engine. The Firecrawl API then finds the 
+    most applicable webpages and returns their URL, title, description, and formatted contents 
+    in markdown.
+    
+    ## Args
+    
+    1. web_search: Argument being sent to the Firecrawl API. Should be treated similarly to how 
+    one would normally type an inquiry in a search engine.
+    """
+    
+    results = app.search(web_search)
+    
+    return results

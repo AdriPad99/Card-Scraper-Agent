@@ -1,0 +1,3 @@
+FIRECRAWL_AGENT_INIT_PROMPT="""
+
+"""
