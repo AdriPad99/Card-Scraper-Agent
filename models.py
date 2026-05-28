@@ -5,6 +5,24 @@ class SummaryModel(BaseModel):
     
     summary: str = Field(description="Easy to read, user-friendly summary of the LLM response to be shown to the user.")
     
+class ReasoningModel(BaseModel):
+    
+    """Returns 'reason'"""
+    
+    reason: str = Field(description="Summary of the LLM's internal reasoning of a certain step.")
+    
+class ActionModel(BaseModel):
+    
+    """Returns 'action'"""
+    
+    action: Literal['scrape_webpage', 'crawl_webpage', 'search_webpage', ''] = Field(description="Tool that LLM selects to solve the next step of the current problem.")
+    
+class ObservationModel(BaseModel):
+    
+    """Returns 'observation'"""
+    
+    observation: str = Field(description="Easy to read observation of the current LLM chat history and the results of tool calls.")
+    
 class CrawlDict(TypedDict):
     
     """

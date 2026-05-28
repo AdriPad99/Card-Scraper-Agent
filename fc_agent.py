@@ -2,7 +2,9 @@ import anthropic
 import instructor
 
 from settings import anthropic_api_key
-from models import SummaryModel
+from models import SummaryModel, ReasoningModel, ActionModel, ObservationModel
+from notepad import Notepad
+from prompts import REASONING_PROMPT, ACTION_PROMPT, OBSERVATION_PROMPT
 
 claude = instructor.from_anthropic(anthropic.Anthropic(api_key=anthropic_api_key))
 
@@ -38,8 +40,29 @@ def call_anthropic(prompt: str, chat_history: list[dict]) -> SummaryModel:
     
     return response
 
-def call_anthropic_react():
+def call_anthropic_react(usr_prompt: str):
+    
+    # Reasoning
     
     
+    # Action
+    
+    
+    # Observation
+    
+    
+    pass
+
+def reasoning(usr_prompt: str) -> ReasoningModel:
+    
+    
+    
+    pass
+
+def action() -> ActionModel:
+    
+    pass
+
+def observatiton() -> ObservationModel:
     
     pass
