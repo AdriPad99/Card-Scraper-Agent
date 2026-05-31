@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 class Notepad(BaseModel):
     
     turns: int = 10
-    notepad = Field(default_factory=list)
+    notepad: list = Field(default_factory=list)
     
     def add(self, item: str):
         
@@ -12,6 +12,10 @@ class Notepad(BaseModel):
     def clear(self):
         
         self.notepad = []
+        
+    def get_notepad(self):
+        
+        return self.notepad
         
     def increase_turn_count(self):
         

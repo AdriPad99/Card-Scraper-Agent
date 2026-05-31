@@ -1,17 +1,25 @@
 import anthropic
 import instructor
 
-from settings import anthropic_api_key
+from settings import anthropic_api_key, tools
 from models import SummaryModel, ReasoningModel, ActionModel, ObservationModel
 from notepad import Notepad
 from prompts import REASONING_PROMPT, ACTION_PROMPT, OBSERVATION_PROMPT
+from typing import TypeVar, Type
 
 claude = instructor.from_anthropic(anthropic.Anthropic(api_key=anthropic_api_key))
 
-MODEL = "claude-sonnet-4-5"
-MAX_TOKENS = 4096
+ResponseModel = TypeVar('ResponseModel', SummaryModel, ReasoningModel, ActionModel, ObservationModel)
 
-def call_anthropic(prompt: str, chat_history: list[dict]) -> SummaryModel:
+def call_anthropic(
+    prompt: str,
+    chat_history: Notepad,
+    is_reacting: bool,
+    model: Type[ResponseModel],
+) -> ResponseModel:
+    
+    MODEL = "claude-sonnet-4-5" if not is_reacting else "claude-haiku-4-5"
+    MAX_TOKENS = 4096 if not is_reacting else 1096
     
     """Prompts claude with given user input and ouputs LLM response in the form of a 
     SummaryModel structured pydantic object.
@@ -22,11 +30,13 @@ def call_anthropic(prompt: str, chat_history: list[dict]) -> SummaryModel:
         2. chat_history: Current chat history for the LLM to reference
     """
     
-    if not chat_history:
+    curr_notepad = chat_history.get_notepad()
+    
+    if not curr_notepad:
         
         pass
     
-    chat_history.append({
+    chat_history.add({
         "role": "user",
         "content": prompt
     })
@@ -35,12 +45,12 @@ def call_anthropic(prompt: str, chat_history: list[dict]) -> SummaryModel:
         model = MODEL,
         max_tokens = MAX_TOKENS,
         messages = chat_history,
-        response_model = SummaryModel
+        response_model = model
     )
     
     return response
 
-def call_anthropic_react(usr_prompt: str):
+def call_anthropic_react(usr_prompt: str, chat_history: Notepad):
     
     # Reasoning
     
@@ -53,16 +63,30 @@ def call_anthropic_react(usr_prompt: str):
     
     pass
 
-def reasoning(usr_prompt: str) -> ReasoningModel:
+def reasoning(usr_prompt: str, chat_history: Notepad) -> ReasoningModel:
     
+    reasoning_prompt = REASONING_PROMPT.format(inquiry=usr_prompt, tools=tools)
     
+    result = call_anthropic(prompt=reasoning_prompt, 
+                   chat_history=chat_history,
+                   is_reacting=True,
+                   model=ReasoningModel)
     
-    pass
+    return result
 
-def action() -> ActionModel:
+def action(chat_history: Notepad, reasoning: str) -> ActionModel:
     
-    pass
+    action_prompt = ACTION_PROMPT.format(reasoning=reasoning, tools=tools)
+    
+    result = call_anthropic(prompt=action_prompt,
+                            chat_history=chat_history,
+                            is_reacting=True,
+                            model=ActionModel)
+    
+    return result
 
-def observatiton() -> ObservationModel:
+def observatiton(usr_prompt: str, chat_history: Notepad) -> ObservationModel:
+    
+    
     
     pass

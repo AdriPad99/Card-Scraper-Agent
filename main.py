@@ -1,9 +1,10 @@
 from fc_agent import call_anthropic
 from fc_scraper import scrape_webpage
+from settings import tools
 
 def main():
     
-    print("Hello from card-agent!")
+    print(tools)
 
 
 if __name__ == "__main__":
