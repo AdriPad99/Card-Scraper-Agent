@@ -15,7 +15,7 @@ class ActionModel(BaseModel):
     
     """Returns 'action'"""
     
-    action: Literal['scrape_webpage', 'crawl_webpage', 'search_webpage', ''] = Field(description="Tool that LLM selects to solve the next step of the current problem.")
+    action: Literal['scrape_webpage', 'crawl_webpage', 'search_webpage', 'stop_react_loop'] = Field(description="Tool that LLM selects to solve the next step of the current problem.")
     
 class ObservationModel(BaseModel):
     

@@ -6,6 +6,7 @@ from models import SummaryModel, ReasoningModel, ActionModel, ObservationModel
 from notepad import Notepad
 from prompts import REASONING_PROMPT, ACTION_PROMPT, OBSERVATION_PROMPT
 from typing import TypeVar, Type
+from fc_scraper import crawl_webpage, scrape_webpage, search_webpage
 
 claude = instructor.from_anthropic(anthropic.Anthropic(api_key=anthropic_api_key))
 
@@ -68,7 +69,7 @@ def reasoning(usr_prompt: str, chat_history: Notepad) -> ReasoningModel:
     reasoning_prompt = REASONING_PROMPT.format(inquiry=usr_prompt, tools=tools)
     
     result = call_anthropic(prompt=reasoning_prompt, 
-                   chat_history=chat_history,
+                   chat_history=chat_history.get_notepad(),
                    is_reacting=True,
                    model=ReasoningModel)
     
@@ -79,7 +80,7 @@ def action(chat_history: Notepad, reasoning: str) -> ActionModel:
     action_prompt = ACTION_PROMPT.format(reasoning=reasoning, tools=tools)
     
     result = call_anthropic(prompt=action_prompt,
-                            chat_history=chat_history,
+                            chat_history=chat_history.get_notepad(),
                             is_reacting=True,
                             model=ActionModel)
     
@@ -90,3 +91,41 @@ def observatiton(usr_prompt: str, chat_history: Notepad) -> ObservationModel:
     
     
     pass
+
+def handle_tool_execution(tool_name: str) -> dict:
+    
+    if tool_name == "stop_react_loop":
+        
+        return {
+            "tool_name" : "stop_react_loop"
+        }
+        
+    elif tool_name ==  "scrape_webpage":
+        
+        url = input("Enter webpage URL to scrape: ")
+        
+        choices = ["1", "2"]
+        
+        web_format = input("What format should it be parsed into? (1. markdown, 2. html)")
+        
+        while web_format not in choices:
+            
+            web_format = input("Please select an appropriate option (1. markdown, 2. html)")
+            
+        choice = ""
+            
+        if web_format == "1":
+            
+            choice = "markdown"
+            
+        elif web_format == "2":
+            
+            choice = "html"
+            
+        results = scrape_webpage(usr_url=url, usr_formats=choice)
+        
+        return results
+    
+    elif tool_name == "crawl_webpage":
+        
+        pass
