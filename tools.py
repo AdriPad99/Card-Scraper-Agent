@@ -86,5 +86,32 @@ TOOLS = [
             "properties" : {}
         },
         "required" : []
+    },
+    {
+        "name": "call_anthropic",
+        "description": """Calls the Anthropic LLM when a user inquiry doesn't fall into the territory of webpage scraping or crawling, or 
+        general inquiries in general.""",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "prompt" : {
+                    "type": "str",
+                    "description": "prompt given to the anthropic LLM thats used as the inference."
+                },
+                "chat_history" : {
+                    "type" : "Notepad object | dict",
+                    "description": """Is either a Notepad object that keeps track of the current chat history and tool uses, or 
+                    just a regular dict of the the LLM/user chat history."""
+                },
+                "is_reacting" : {
+                    "type" : "bool",
+                    "description" : "Boolean that dictates whether or not the LLM call is part of a react loop sequence."
+                },
+                "model" : {
+                    "type" : "Type[ResponseModel]",
+                    "description" : "Structured output model that the LLM will output the response in."
+                }
+            }
+        }
     }
 ]

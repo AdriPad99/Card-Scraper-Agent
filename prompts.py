@@ -38,3 +38,13 @@ the current chat.
     {chat}
 </chat>
 """
+
+SYNTHESIZER_PROMPT="""
+You are an expert at synthesizing information between an LLM and a user. Below I am going to provide you with 
+the full chat history between a LLM and a user and the LLMs tool calls and their associated results. I want 
+you to summarize the results in a user-friendly easy to read format.
+
+<chat>
+    {chat}
+</chat>
+"""

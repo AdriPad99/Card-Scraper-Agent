@@ -23,6 +23,18 @@ class ObservationModel(BaseModel):
     
     observation: str = Field(description="Easy to read observation of the current LLM chat history and the results of tool calls.")
     
+class SynthesizerModel(BaseModel):
+    
+    """Returns 'summary'"""
+    
+    summary: str = Field(description="User friendly, easy to read summary of the LLM chat and tool calls.")
+    
+class SearchEngineModel(BaseModel):
+    
+    """Returns 'search'"""
+    
+    search: str = Field(description="An equivalent search engine inquiry that matches with the user input.")
+    
 class CrawlDict(TypedDict):
     
     """
