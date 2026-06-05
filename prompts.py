@@ -48,3 +48,17 @@ you to summarize the results in a user-friendly easy to read format.
     {chat}
 </chat>
 """
+
+USR_INP_PROMPT = """
+You are a professional at prompting users for suggestions given a set of given tools. I am going to provide you 
+with the current full chat history and a set of tools and I want you to provide help to the user by suggesting to 
+them how you can further help them given the tools provided.
+
+<chat>
+    {chat}
+</chat>
+
+<tools>
+    {tools}
+</tools>
+"""

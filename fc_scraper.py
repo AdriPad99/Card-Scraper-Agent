@@ -19,7 +19,7 @@ def scrape_webpage(usr_url: str, usr_formats: Literal["markdown", "html"]) -> di
     2. usr_formats: Format(s) of how the webpage contents should be scraped into.
     """
     
-    data = app.scrape_url(url=usr_url, formats=usr_formats)
+    data = app.scrape_url(url=usr_url, formats=[usr_formats])
     
     return data
 

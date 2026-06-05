@@ -6,7 +6,15 @@ chat_history = []
 
 def main():
     
-    prompt = input("Hello, what can I help you with?: ")
+    print(
+        "\n=== Web Research Agent ===\n"
+        "I can help you with:\n"
+        "  - Scraping a webpage       (e.g. 'scrape https://example.com')\n"
+        "  - Crawling a website       (e.g. 'crawl https://docs.example.com up to 10 pages')\n"
+        "  - Searching the web        (e.g. 'search for the latest AI news')\n"
+        "  - General questions        (e.g. 'summarize what you found')\n"
+    )
+    prompt = input("What would you like to research? > ")
     
     while True:
         
@@ -20,11 +28,12 @@ def main():
         
         if react_loop_result == "stop_react_loop":
             
+            result = synthesize(notepad)
+            
+            print(result.summary)
+            
             break
         
-    result = synthesize(notepad)
-    
-    print(result.summary)
 
 
 if __name__ == "__main__":

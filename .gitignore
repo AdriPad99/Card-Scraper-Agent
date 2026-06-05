@@ -21,3 +21,9 @@ wheels/
 *.pfx
 secrets.json
 credentials.json
+
+# Logs
+*.log
+
+# IDE settings
+.vscode/

@@ -1,11 +1,12 @@
 import anthropic
 import instructor
+import json
 
 from settings import anthropic_api_key, tools
 from models import (SummaryModel, ReasoningModel, ActionModel, ObservationModel,
                     SearchEngineModel, SynthesizerModel)
 from notepad import Notepad
-from prompts import REASONING_PROMPT, ACTION_PROMPT, OBSERVATION_PROMPT, SYNTHESIZER_PROMPT
+from prompts import REASONING_PROMPT, ACTION_PROMPT, OBSERVATION_PROMPT, SYNTHESIZER_PROMPT, USR_INP_PROMPT
 from typing import TypeVar, Type
 from fc_scraper import crawl_webpage, scrape_webpage, search_webpage
 from utils import (handle_format_selection, handle_limit_selection,
@@ -29,22 +30,19 @@ def call_anthropic(
     MODEL = "claude-sonnet-4-5" if not is_reacting else "claude-haiku-4-5"
     MAX_TOKENS = 4096 if not is_reacting else 1096
 
-    curr_notepad = chat_history.get_notepad() if isinstance(chat_history, Notepad) else chat_history
-
-    if not curr_notepad:
-        pass
-
     if isinstance(chat_history, Notepad):
-        chat_history.add({"role": "user", "content": prompt})
+        chat_history.add(role='user', content=prompt)
+        messages = chat_history.get_notepad()
     else:
         chat_history.append({"role": "user", "content": prompt})
+        messages = chat_history
 
     log.debug("LLM call | model=%s max_tokens=%d response_model=%s", MODEL, MAX_TOKENS, model.__name__)
 
     response = claude.messages.create(
         model = MODEL,
         max_tokens = MAX_TOKENS,
-        messages = chat_history,
+        messages = messages,
         response_model = model
     )
 
@@ -57,21 +55,15 @@ def call_anthropic_react(usr_prompt: str, chat_history: Notepad) -> str:
 
     # Reasoning
     reason = reasoning(usr_prompt=usr_prompt, chat_history=chat_history)
-    log.info("Reasoning | %s", reason.reason)
+    log.info("Reasoning | LLM reasoning...")
 
-    chat_history.add({
-        "role": "assistant",
-        "content": reason.reason
-    })
+    chat_history.add(role="assistant", content=reason.reason)
 
     # Action
     llm_action = action(chat_history=chat_history, reasoning=reason.reason)
     log.info("Action selected | tool=%s", llm_action.action)
 
-    chat_history.add({
-        "role": "assistant",
-        "content": llm_action.action
-    })
+    chat_history.add(role="assistant", content=llm_action.action)
 
     if llm_action.action == "stop_react_loop":
         return llm_action.action
@@ -80,10 +72,7 @@ def call_anthropic_react(usr_prompt: str, chat_history: Notepad) -> str:
     llm_observation = observatiton(tool_name=llm_action, chat_history=chat_history)
     log.info("Observation | %s", llm_observation.observation)
 
-    chat_history.add({
-        "role": "assistant",
-        "content": llm_observation.observation
-    })
+    chat_history.add(role="assistant", content=llm_observation.observation)
 
     return llm_action.action
 
@@ -91,8 +80,8 @@ def reasoning(usr_prompt: str, chat_history: Notepad) -> ReasoningModel:
     
     reasoning_prompt = REASONING_PROMPT.format(inquiry=usr_prompt, tools=tools)
     
-    result = call_anthropic(prompt=reasoning_prompt, 
-                   chat_history=chat_history.get_notepad(),
+    result = call_anthropic(prompt=reasoning_prompt,
+                   chat_history=chat_history.get_notepad().copy(),
                    is_reacting=True,
                    model=ReasoningModel)
     
@@ -103,7 +92,7 @@ def action(chat_history: Notepad, reasoning: str) -> ActionModel:
     action_prompt = ACTION_PROMPT.format(reasoning=reasoning, tools=tools)
     
     result = call_anthropic(prompt=action_prompt,
-                            chat_history=chat_history.get_notepad(),
+                            chat_history=chat_history.get_notepad().copy(),
                             is_reacting=True,
                             model=ActionModel)
     
@@ -111,15 +100,22 @@ def action(chat_history: Notepad, reasoning: str) -> ActionModel:
 
 def observatiton(tool_name: ActionModel, chat_history: Notepad) -> ObservationModel:
     
-    tool_result = handle_tool_execution(tool_name.action)
-    
-    chat_history.add(tool_result)
+    tool_result = handle_tool_execution(tool_name.action, notes=chat_history)
+
+    if hasattr(tool_result, 'model_dump'):
+        serialized = json.dumps(tool_result.model_dump(), default=str)
+    elif isinstance(tool_result, dict):
+        serialized = json.dumps(tool_result, default=str)
+    else:
+        serialized = str(tool_result)
+
+    chat_history.add(role="assistant", content=serialized)
     
     observation_prompt = OBSERVATION_PROMPT.format(chat=chat_history.get_notepad())
     
     result = call_anthropic(
         prompt=observation_prompt,
-        chat_history=chat_history.get_notepad(),
+        chat_history=chat_history.get_notepad().copy(),
         is_reacting=True,
         model=ObservationModel
     )
@@ -132,14 +128,33 @@ def synthesize(chat_history: Notepad) -> SynthesizerModel:
     
     result = call_anthropic(
         prompt=synthesizer_full_prompt,
-        chat_history=chat_history.get_notepad(),
+        chat_history=chat_history.get_notepad().copy(),
         is_reacting=False,
         model=SynthesizerModel
     )
     
     return result
 
-def handle_tool_execution(tool_name: str) -> dict:
+def handle_get_user_input(notes: Notepad):
+    usr_prompt = USR_INP_PROMPT.format(chat=notes.get_notepad(), tools=tools)
+    history = call_anthropic(chat_history=notes,
+                             is_reacting=False,
+                             model=ObservationModel,
+                             prompt=usr_prompt)
+    notes.add(role='assistant', content=history.observation)
+    print("\n=== Agent Suggestions ===")
+    print(history.observation)
+    print(
+        "\nBased on the above, you can ask me to:\n"
+        "  - Scrape a page     (e.g. 'scrape https://example.com')\n"
+        "  - Crawl a site      (e.g. 'crawl https://docs.example.com up to 10 pages')\n"
+        "  - Search the web    (e.g. 'search for the latest AI news')\n"
+        "  - Answer a question (e.g. 'summarize what you found so far')\n"
+    )
+    usr_inp = input("How would you like to continue? > ")
+    notes.add(role='user', content=usr_inp)
+
+def handle_tool_execution(tool_name: str, notes: Notepad) -> dict:
     log.info("Executing tool | tool=%s", tool_name)
 
     if tool_name == "stop_react_loop":
@@ -188,3 +203,7 @@ def handle_tool_execution(tool_name: str) -> dict:
                        is_reacting=False, model=SearchEngineModel)
         log.info("search_webpage complete | query=%s", usr_search)
         return search
+    
+    elif tool_name == "handle_get_user_input":
+        handle_get_user_input(notes=notes)
+        return "User input collected and added to chat history."

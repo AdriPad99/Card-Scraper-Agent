@@ -112,6 +112,22 @@ TOOLS = [
                     "description" : "Structured output model that the LLM will output the response in."
                 }
             }
-        }
+        },
+        "required": ['prompt','chat_history','is_reacting','model']
+    },
+    {
+        "name": "handle_get_user_input",
+        "description": """Summarizes current chat history and all available tools and prompts the user how to further help them 
+        given the available tools and previous chat history.""",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "notes": {
+                    "type": "Notepad object",
+                    "description": """Notepad object that controls the chat history between the user and LLM"""
+                },
+            }
+        },
+        "required": ['notes']
     }
 ]

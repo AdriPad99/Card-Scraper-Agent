@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from logger import get_logger
+from typing import Literal
 
 log = get_logger(__name__)
 
@@ -8,10 +9,12 @@ class Notepad(BaseModel):
     turns: int = 10
     notepad: list = Field(default_factory=list)
 
-    def add(self, item: dict):
-        role = item.get("role", "unknown")
+    def add(self, role: Literal['user', 'assistant'], content: str):
         log.debug("Notepad.add | role=%s len_after=%d", role, len(self.notepad) + 1)
-        self.notepad.append(item)
+        self.notepad.append({
+            "role": role,
+            "content": content
+        })
 
     def clear(self):
         log.debug("Notepad.clear | cleared %d entries", len(self.notepad))
